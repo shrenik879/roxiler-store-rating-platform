@@ -44,6 +44,18 @@ class UserRepository extends BaseRepository {
     });
   }
 
+  findDetailById(id) {
+    const ownerAvg = literal(
+      '(SELECT AVG(r.rating) FROM ratings AS r ' +
+        'INNER JOIN stores AS s ON s.id = r.store_id ' +
+        'WHERE s.owner_id = `User`.`id`)'
+    );
+    return User.findByPk(id, {
+      attributes: { include: [[ownerAvg, 'ownerStoreAvgRating']] },
+      include: [{ model: Store, as: 'ownedStore', attributes: ['id', 'name'], required: false }],
+    });
+  }
+
   countByRole() {
     return User.findAll({
       attributes: ['role', [fn('COUNT', col('id')), 'count']],

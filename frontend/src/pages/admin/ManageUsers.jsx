@@ -55,6 +55,7 @@ export default function ManageUsers() {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState({ sortBy: 'createdAt', sortOrder: 'DESC' });
   const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
   const debouncedSearch = useDebounce(search);
 
   const params = { page, limit: 10, search: debouncedSearch, role: role || undefined, ...sort };
@@ -127,13 +128,74 @@ export default function ManageUsers() {
           loading={isLoading}
           sort={sort}
           onSort={handleSort}
+          onRowClick={(u) => setSelectedId(u.id)}
           emptyState={<EmptyState icon={UserPlus} title="No users found" description="Try adjusting your search or filters." />}
         />
         {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
       </div>
 
       <CreateUserModal open={open} onClose={() => setOpen(false)} onCreated={() => qc.invalidateQueries({ queryKey: ['admin'] })} />
+      <UserDetailsModal userId={selectedId} onClose={() => setSelectedId(null)} />
     </>
+  );
+}
+
+function UserDetailsModal({ userId, onClose }) {
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['admin', 'user', userId],
+    queryFn: () => userService.getById(userId),
+    enabled: !!userId,
+  });
+
+  const Row = ({ label, value }) => (
+    <div className="flex justify-between gap-4 border-b border-border/60 py-2.5 last:border-0">
+      <span className="text-sm text-muted">{label}</span>
+      <span className="text-sm text-right">{value}</span>
+    </div>
+  );
+
+  return (
+    <Modal
+      open={!!userId}
+      onClose={onClose}
+      title="User details"
+      footer={
+        <Button variant="secondary" onClick={onClose}>
+          Close
+        </Button>
+      }
+    >
+      {isLoading || !user ? (
+        <p className="py-6 text-center text-sm text-muted">Loading…</p>
+      ) : (
+        <div>
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
+              {user.name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()}
+            </div>
+            <div>
+              <p className="font-semibold">{user.name}</p>
+              <RoleBadge role={user.role} />
+            </div>
+          </div>
+          <Row label="Email" value={user.email} />
+          <Row label="Address" value={user.address || '—'} />
+          <Row label="Role" value={ROLE_LABELS[user.role]} />
+          {user.role === ROLES.STORE_OWNER && (
+            <>
+              <Row label="Store" value={user.ownedStore?.name || 'Not assigned'} />
+              <Row
+                label="Store rating"
+                value={
+                  user.ownerStoreAvgRating != null ? `★ ${user.ownerStoreAvgRating}` : 'No ratings yet'
+                }
+              />
+            </>
+          )}
+          <Row label="Joined" value={formatDate(user.createdAt)} />
+        </div>
+      )}
+    </Modal>
   );
 }
 

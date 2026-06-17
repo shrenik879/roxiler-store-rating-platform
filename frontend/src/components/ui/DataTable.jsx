@@ -4,7 +4,7 @@ import { cn } from '@/utils/cn';
 import { TableSkeleton } from './Skeleton';
 import { EmptyState } from './EmptyState';
 
-export function DataTable({ columns, rows, loading, sort, onSort, emptyState, rowKey = (r) => r.id }) {
+export function DataTable({ columns, rows, loading, sort, onSort, emptyState, onRowClick, rowKey = (r) => r.id }) {
   if (loading) {
     return (
       <div className="card overflow-hidden">
@@ -56,7 +56,11 @@ export function DataTable({ columns, rows, loading, sort, onSort, emptyState, ro
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.18, delay: Math.min(i * 0.02, 0.2) }}
-                className="border-b border-border/60 last:border-0 hover:bg-white/[0.02] transition-colors"
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={cn(
+                  'border-b border-border/60 last:border-0 hover:bg-white/[0.02] transition-colors',
+                  onRowClick && 'cursor-pointer'
+                )}
               >
                 {columns.map((col) => (
                   <td key={col.key} className={cn('px-4 py-3 text-foreground/90', col.className)}>

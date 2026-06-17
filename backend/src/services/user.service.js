@@ -64,9 +64,7 @@ const userService = {
   },
 
   async getById(id) {
-    const user = await userRepository.findById(id, {
-      include: [{ association: 'ownedStore' }],
-    });
+    const user = await userRepository.findDetailById(id);
     if (!user) throw ApiError.notFound('User not found');
     return shape(user);
   },

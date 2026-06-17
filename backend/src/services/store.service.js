@@ -56,6 +56,48 @@ const storeService = {
     return shape(store);
   },
 
+  async update(id, { name, email, address, ownerId }, actor) {
+    const store = await storeRepository.findById(id);
+    if (!store) throw ApiError.notFound('Store not found');
+
+    if (email && email !== store.email) {
+      const existing = await storeRepository.findByEmail(email);
+      if (existing && existing.id !== store.id) {
+        throw ApiError.conflict('A store with this email already exists');
+      }
+    }
+
+    if (ownerId) {
+      const owner = await userRepository.findById(ownerId);
+      if (!owner) throw ApiError.badRequest('Owner user does not exist');
+      if (owner.role !== ROLES.STORE_OWNER) {
+        throw ApiError.badRequest('Assigned owner must have the STORE_OWNER role');
+      }
+      const ownersStore = await storeRepository.findByOwnerId(ownerId);
+      if (ownersStore && ownersStore.id !== store.id) {
+        throw ApiError.conflict('This owner already manages a store');
+      }
+    }
+
+    await store.update({
+      name: name ?? store.name,
+      email: email ?? store.email,
+      address: address ?? store.address,
+      owner_id: ownerId || null,
+    });
+
+    await activityLogService.record({
+      actor,
+      action: ACTIVITY.STORE_UPDATED,
+      description: `${actor.name} updated store '${store.name}'`,
+      metadata: { storeId: store.id },
+    });
+    await cacheService.delByPattern(CACHE_KEYS.STORE_LIST_PREFIX);
+    await cacheService.del(CACHE_KEYS.ADMIN_DASHBOARD);
+
+    return shape(await storeRepository.findDetailById(store.id));
+  },
+
   async browse(query, userId) {
     const pg = buildPagination(query, { allowedSortFields: SORT_FIELDS });
     const cacheKey = CACHE_KEYS.STORE_LIST(

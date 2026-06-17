@@ -8,6 +8,11 @@ const storeController = {
     created(res, { data: store, message: 'Store created' });
   }),
 
+  update: asyncHandler(async (req, res) => {
+    const store = await storeService.update(Number(req.params.id), req.body, req.user);
+    ok(res, { data: store, message: 'Store updated' });
+  }),
+
   listForAdmin: asyncHandler(async (req, res) => {
     const { items, meta } = await storeService.listForAdmin(req.query);
     ok(res, { data: items, meta });

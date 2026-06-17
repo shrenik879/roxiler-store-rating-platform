@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,6 +45,7 @@ export default function ManageStores() {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState({ sortBy: 'createdAt', sortOrder: 'DESC' });
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
   const debouncedSearch = useDebounce(search);
 
   const params = { page, limit: 10, search: debouncedSearch, ...sort };
@@ -94,23 +95,49 @@ export default function ManageStores() {
           loading={isLoading}
           sort={sort}
           onSort={handleSort}
+          onRowClick={(s) => setEditing(s)}
           emptyState={<EmptyState icon={StoreIcon} title="No stores found" />}
         />
         {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
       </div>
 
-      <CreateStoreModal open={open} onClose={() => setOpen(false)} onCreated={() => qc.invalidateQueries({ queryKey: ['admin'] })} />
+      <StoreFormModal
+        open={open}
+        store={null}
+        onClose={() => setOpen(false)}
+        onSaved={() => qc.invalidateQueries({ queryKey: ['admin'] })}
+      />
+      <StoreFormModal
+        open={!!editing}
+        store={editing}
+        onClose={() => setEditing(null)}
+        onSaved={() => qc.invalidateQueries({ queryKey: ['admin'] })}
+      />
     </>
   );
 }
 
-function CreateStoreModal({ open, onClose, onCreated }) {
+function StoreFormModal({ open, store, onClose, onSaved }) {
+  const isEdit = !!store;
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm({ resolver: zodResolver(createStoreSchema) });
+
+  const currentOwnerId = isEdit ? store.ownerId ?? store.owner?.id ?? '' : '';
+
+  useEffect(() => {
+    if (open) {
+      reset({
+        name: isEdit ? store.name : '',
+        email: isEdit ? store.email : '',
+        address: isEdit ? store.address || '' : '',
+        ownerId: currentOwnerId ? String(currentOwnerId) : '',
+      });
+    }
+  }, [open, store]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: owners } = useQuery({
     queryKey: ['admin', 'users', 'owners-for-store'],
@@ -119,30 +146,33 @@ function CreateStoreModal({ open, onClose, onCreated }) {
   });
 
   const mutation = useMutation({
-    mutationFn: storeService.create,
+    mutationFn: (v) => (isEdit ? storeService.update(store.id, v) : storeService.create(v)),
     onSuccess: () => {
-      toast.success('Store created');
+      toast.success(isEdit ? 'Store updated' : 'Store created');
       reset();
-      onCreated();
+      onSaved();
       onClose();
     },
     onError: (err) => toast.error(extractError(err).message),
   });
 
-  const availableOwners = (owners?.items || []).filter((o) => !o.ownedStore);
+  // Free owners, plus this store's current owner so it stays selectable while editing.
+  const availableOwners = (owners?.items || []).filter(
+    (o) => !o.ownedStore || o.id === currentOwnerId
+  );
 
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="Create store"
+      title={isEdit ? 'Edit store' : 'Create store'}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
           <Button onClick={handleSubmit((v) => mutation.mutate(v))} loading={mutation.isPending}>
-            Create
+            {isEdit ? 'Save changes' : 'Create'}
           </Button>
         </>
       }

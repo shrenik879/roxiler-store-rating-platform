@@ -39,6 +39,28 @@ adminRouter
 adminRouter.get('/export', validate(storeV.listStores, 'query'), storeController.exportCSV);
 adminRouter.get('/:id', validate(idParam, 'params'), storeController.getById);
 
+/**
+ * @swagger
+ * /admin/stores/{id}:
+ *   put:
+ *     tags: [Admin - Stores]
+ *     summary: Update a store and (re)assign its owner
+ *     security: [{ bearerAuth: [] }]
+ *     parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/CreateStoreInput' }
+ *     responses: { 200: { description: Store updated } }
+ */
+adminRouter.put(
+  '/:id',
+  validate(idParam, 'params'),
+  validate(storeV.createStore),
+  storeController.update
+);
+
 const userRouter = express.Router();
 userRouter.use(authenticate, authorize(ROLES.USER));
 

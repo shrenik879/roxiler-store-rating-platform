@@ -91,6 +91,7 @@ const storeService = {
       order: pg.order,
       limit: pg.limit,
       offset: pg.offset,
+      searchEmail: true,
     });
     return {
       items: rows.map(shape),
@@ -110,6 +111,7 @@ const storeService = {
       order: [['createdAt', 'DESC']],
       limit: 10000,
       offset: 0,
+      searchEmail: true,
     });
     return toCSV(rows.map(shape), [
       { key: 'id', header: 'ID' },

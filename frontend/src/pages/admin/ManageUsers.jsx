@@ -25,6 +25,11 @@ import { extractError } from '@/services/axios';
 const columns = () => [
   { key: 'name', header: 'Name', sortable: true, render: (u) => <span className="font-medium">{u.name}</span> },
   { key: 'email', header: 'Email', sortable: true, render: (u) => <span className="text-muted">{u.email}</span> },
+  {
+    key: 'address',
+    header: 'Address',
+    render: (u) => <span className="text-muted line-clamp-1 max-w-[220px]">{u.address || '—'}</span>,
+  },
   { key: 'role', header: 'Role', sortable: true, render: (u) => <RoleBadge role={u.role} /> },
   {
     key: 'rating',

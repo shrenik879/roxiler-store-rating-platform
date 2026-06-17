@@ -15,13 +15,16 @@ class StoreRepository extends BaseRepository {
     return Store.findOne({ where: { owner_id: ownerId } });
   }
 
-  findAndCountForBrowse({ search, order, limit, offset, userId }) {
+  findAndCountForBrowse({ search, order, limit, offset, userId, searchEmail = false }) {
     const where = {};
     if (search) {
       where[Op.or] = [
         { name: { [Op.like]: `%${search}%` } },
         { address: { [Op.like]: `%${search}%` } },
       ];
+      if (searchEmail) {
+        where[Op.or].push({ email: { [Op.like]: `%${search}%` } });
+      }
     }
 
     const avgRating = literal(

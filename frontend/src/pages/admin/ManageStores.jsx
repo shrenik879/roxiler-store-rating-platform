@@ -83,7 +83,7 @@ export default function ManageStores() {
           setSearch(v);
           setPage(1);
         }}
-        placeholder="Search by name or address…"
+        placeholder="Search by name, email or address…"
         className="sm:max-w-sm"
       />
 

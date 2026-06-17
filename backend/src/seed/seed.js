@@ -43,6 +43,13 @@ async function seed() {
     address: '5 Lakeview Road, Mumbai',
     role: ROLES.STORE_OWNER,
   });
+  await findOrCreateUser({
+    name: 'Karthik Menon Nair Pillai',
+    email: 'owner3@storerating.com',
+    password: 'Owner@123',
+    address: '14 Residency Road, Bengaluru',
+    role: ROLES.STORE_OWNER,
+  });
 
   const [acme] = await Store.findOrCreate({
     where: { email: 'contact@sharmastore.com' },

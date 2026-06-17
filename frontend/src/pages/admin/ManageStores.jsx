@@ -151,14 +151,21 @@ function CreateStoreModal({ open, onClose, onCreated }) {
         <Input id="cs-name" label="Store name" error={errors.name?.message} {...register('name')} />
         <Input id="cs-email" label="Email" type="email" error={errors.email?.message} {...register('email')} />
         <Input id="cs-address" label="Address" error={errors.address?.message} {...register('address')} />
-        <Select id="cs-owner" label="Owner (optional)" error={errors.ownerId?.message} {...register('ownerId')}>
-          <option value="">Unassigned</option>
-          {availableOwners.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name} · {o.email}
-            </option>
-          ))}
-        </Select>
+        <div className="space-y-1">
+          <Select id="cs-owner" label="Owner (optional)" error={errors.ownerId?.message} {...register('ownerId')}>
+            <option value="">Unassigned</option>
+            {availableOwners.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name} · {o.email}
+              </option>
+            ))}
+          </Select>
+          {availableOwners.length === 0 && (
+            <p className="text-xs text-muted">
+              No store owners are free to assign. Create a Store Owner under Users, or leave this Unassigned.
+            </p>
+          )}
+        </div>
       </form>
     </Modal>
   );

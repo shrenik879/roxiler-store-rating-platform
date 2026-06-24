@@ -51,21 +51,88 @@ A full-stack web application that enables users to discover and rate stores on a
 
 ---
 
-## Architecture
+## Architecture Overview
 
 ```text
-React (Vite)
-      │
-      │ HTTPS /api/*
-      ▼
-Node.js + Express
-Routes → Controllers → Services → Repositories
-      │
-      ▼
-Sequelize ORM
-      │
-      ▼
-SQLite Database
+┌──────────────────────────────────────────────────────┐
+│                  React Frontend (Vite)              │
+│                                                      │
+│  • React 19                                          │
+│  • Tailwind CSS                                      │
+│  • TanStack Query                                    │
+│  • React Hook Form + Zod                             │
+│  • Framer Motion                                     │
+└──────────────────────┬───────────────────────────────┘
+                       │
+                       │ HTTPS Requests (/api/*)
+                       ▼
+┌──────────────────────────────────────────────────────┐
+│               Node.js + Express Backend             │
+│                                                      │
+│  Routes → Controllers → Services → Repositories     │
+│                                                      │
+│  • JWT Authentication                               │
+│  • Role-Based Access Control (RBAC)                 │
+│  • Joi Validation                                   │
+│  • Helmet & CORS                                    │
+│  • Rate Limiting                                    │
+│  • Swagger API Documentation                        │
+└──────────────────────┬───────────────────────────────┘
+                       │
+                       │ Sequelize ORM
+                       ▼
+┌──────────────────────────────────────────────────────┐
+│                 SQLite Database                     │
+│                                                      │
+│  • Users                                             │
+│  • Stores                                            │
+│  • Ratings                                           │
+│  • Refresh Tokens                                    │
+│  • Activity Logs                                     │
+└──────────────────────────────────────────────────────┘
+```
+## System Architecture
+
+```text
+                    ┌────────────────────┐
+                    │      Browser       │
+                    └─────────┬──────────┘
+                              │
+                              ▼
+                ┌────────────────────────┐
+                │ React Frontend (Vite)  │
+                │                        │
+                │ • Admin Dashboard      │
+                │ • Owner Dashboard      │
+                │ • User Dashboard       │
+                └─────────┬──────────────┘
+                          │ HTTPS /api/*
+                          ▼
+              ┌───────────────────────────┐
+              │    Express REST API       │
+              │                           │
+              │ Authentication (JWT)      │
+              │ Authorization (RBAC)      │
+              │ Validation (Joi)          │
+              │ Security (Helmet, CORS)   │
+              │ Rate Limiting             │
+              └──────────┬────────────────┘
+                         │
+                         ▼
+              ┌───────────────────────────┐
+              │     Sequelize ORM         │
+              └──────────┬────────────────┘
+                         │
+                         ▼
+              ┌───────────────────────────┐
+              │      SQLite Database      │
+              │                           │
+              │ Users                     │
+              │ Stores                    │
+              │ Ratings                   │
+              │ Refresh Tokens            │
+              │ Activity Logs             │
+              └───────────────────────────┘
 ```
 
 ---

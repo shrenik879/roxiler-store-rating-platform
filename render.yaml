@@ -1,11 +1,11 @@
 # render.yaml — Render Blueprint
-# Defines both services so you can deploy with one click from the Render dashboard.
+# One-click deployment: New → Blueprint → connect repo → Apply
 # Docs: https://render.com/docs/blueprint-spec
 
 services:
   # ──────────────────────────────────────────────────────────
   # Backend: Node.js / Express / Sequelize / SQLite
-  # Deployed as a Docker web service (uses backend/Dockerfile)
+  # type: web + runtime: docker  →  Docker web service
   # ──────────────────────────────────────────────────────────
   - type: web
     name: store-rating-backend
@@ -15,37 +15,31 @@ services:
     region: oregon
     plan: free
 
-    # Render injects PORT automatically; the app reads process.env.PORT via env.js
-    # No start command needed — CMD in the Dockerfile handles seed + server
-
+    # Render injects PORT automatically (usually 10000).
+    # The app reads process.env.PORT via env.js — no hardcoded port.
+    # CMD in the Dockerfile handles seed + server start.
     healthCheckPath: /api/docs
 
-    disk:
-      name: sqlite-data
-      mountPath: /app/data
-      sizeGB: 1
+    # NOTE: Persistent disk is a paid feature and is NOT used here.
+    # SQLite is stored in the container's WORKDIR (/app/data.sqlite).
+    # The seed script runs on every startup and restores demo data,
+    # so a disk reset on redeploy is acceptable for evaluation purposes.
 
     envVars:
       - key: NODE_ENV
         value: production
 
-      # PORT is automatically injected by Render (usually 10000).
-      # Listed here for explicitness; Render's injected value takes precedence.
-      - key: PORT
-        value: 10000
-
-      # ── Database ──────────────────────────────────────────
       - key: DB_DIALECT
         value: sqlite
 
-      # Points SQLite to the persistent disk mounted at /app/data
+      # SQLite file path — stored in the container WORKDIR /app.
+      # No persistent disk required; seed restores data on every start.
       - key: DB_STORAGE
-        value: /app/data/data.sqlite
+        value: /app/data.sqlite
 
-      # ── JWT Secrets (CHANGE THESE) ────────────────────────
-      # Generate with: openssl rand -hex 32
+      # JWT secrets — auto-generated as 256-bit base64 values by Render.
       - key: JWT_ACCESS_SECRET
-        generateValue: true   # Render auto-generates a secure random value
+        generateValue: true
 
       - key: JWT_REFRESH_SECRET
         generateValue: true
@@ -59,26 +53,21 @@ services:
       - key: BCRYPT_SALT_ROUNDS
         value: 10
 
-      # ── CORS ──────────────────────────────────────────────
-      # Set this to the actual frontend URL once it is deployed.
-      # If using the Blueprint, Render can resolve service names:
+      # CORS_ORIGIN — set to the frontend's hostname.
+      # fromService.type must be "web" because the frontend is
+      # type: web + runtime: static (per Render Blueprint spec).
       - key: CORS_ORIGIN
         fromService:
           name: store-rating-frontend
           type: web
           property: host
-          # This inserts "https://<frontend-host>" automatically.
-          # If auto-resolution fails, set manually in the dashboard.
 
-      # ── Cookie Security ───────────────────────────────────
       - key: COOKIE_SECURE
         value: true
 
-      # ── Redis (disabled — no Redis service needed) ────────
       - key: REDIS_ENABLED
         value: false
 
-      # ── Rate Limiting ─────────────────────────────────────
       - key: RATE_LIMIT_WINDOW_MS
         value: 900000
 
@@ -88,13 +77,10 @@ services:
       - key: AUTH_RATE_LIMIT_MAX
         value: 20
 
-      # ── Seeding ───────────────────────────────────────────
-      # SEED_DEMO=true populates demo stores, owners, users & ratings.
-      # Great for evaluation/demo. Set to false for a clean production deploy.
+      # SEED_DEMO=true seeds demo stores, owners, users, and ratings.
       - key: SEED_DEMO
         value: true
 
-      # ── Admin Account ─────────────────────────────────────
       - key: ADMIN_NAME
         value: System Administrator Account
 
@@ -102,35 +88,34 @@ services:
         value: admin@storerating.com
 
       - key: ADMIN_PASSWORD
-        value: Admin@1234   # Change this in the Render dashboard!
+        value: Admin@1234
 
       - key: ADMIN_ADDRESS
         value: Head Office, Admin Street, City
 
   # ──────────────────────────────────────────────────────────
-  # Frontend: React + Vite → built to static files → served by Render CDN
+  # Frontend: React + Vite → static files → Render global CDN
+  # type: web + runtime: static  →  static site (per Render spec)
+  # Static sites are served from Render's CDN with no region setting.
   # ──────────────────────────────────────────────────────────
   - type: web
     name: store-rating-frontend
     runtime: static
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./frontend/dist
     rootDir: frontend
-    region: oregon
-    plan: free
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
 
     routes:
-      # SPA fallback: all paths serve index.html (React Router handles routing)
+      # SPA fallback — all paths serve index.html so React Router works.
       - type: rewrite
         source: /*
         destination: /index.html
 
     envVars:
       # VITE_API_URL is baked into the JS bundle at build time.
-      # It must point to the backend service's public URL.
+      # fromService.type: web because the backend is type: web.
       - key: VITE_API_URL
         fromService:
           name: store-rating-backend
           type: web
           property: host
-          # Render prepends https:// — result: https://<backend-host>

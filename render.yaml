@@ -53,14 +53,11 @@ services:
       - key: BCRYPT_SALT_ROUNDS
         value: 10
 
-      # CORS_ORIGIN — set to the frontend's hostname.
-      # fromService.type must be "web" because the frontend is
-      # type: web + runtime: static (per Render Blueprint spec).
+      # CORS_ORIGIN — exact public URL of the deployed frontend.
+      # fromService resolves to a private internal hostname, not the
+      # public onrender.com URL, so we hardcode the actual live URL.
       - key: CORS_ORIGIN
-        fromService:
-          name: store-rating-frontend
-          type: web
-          property: host
+        value: https://store-rating-frontend-lu9n.onrender.com
 
       - key: COOKIE_SECURE
         value: true
@@ -113,9 +110,6 @@ services:
 
     envVars:
       # VITE_API_URL is baked into the JS bundle at build time.
-      # fromService.type: web because the backend is type: web.
+      # Must be the public backend URL so Axios calls reach the API.
       - key: VITE_API_URL
-        fromService:
-          name: store-rating-backend
-          type: web
-          property: host
+        value: https://store-rating-backend-pvwj.onrender.com

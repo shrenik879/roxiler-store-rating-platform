@@ -1,174 +1,208 @@
 # Store Rating Platform
 
-A full-stack web application that enables users to discover and rate stores on a 1–5 scale. Built with a layered MVC architecture, role-based access control, and JWT-based authentication — designed as a production-quality assessment submission.
+A full-stack web application that enables users to discover and rate stores on a scale of 1–5. The platform supports three roles—Admin, Store Owner, and Normal User—and implements role-based access control, JWT authentication, and a layered MVC architecture.
 
 ---
 
 ## Live Demo
 
-| | URL |
-|---|---|
-| 🌐 **Frontend** | https://store-rating-frontend.onrender.com |
-| 🔌 **Backend API** | https://store-rating-backend.onrender.com |
-| 📖 **API Docs (Swagger)** | https://store-rating-backend.onrender.com/api/docs |
+| Service                        | URL                                                         |
+| ------------------------------ | ----------------------------------------------------------- |
+| 🌐 Frontend                    | https://store-rating-frontend-lu9n.onrender.com             |
+| 📖 API Documentation (Swagger) | https://store-rating-backend-pvwj.onrender.com/api/docs     |
+| 📂 Source Code                 | https://github.com/shrenik879/roxiler-store-rating-platform |
 
 ---
 
 ## Features
 
 ### 👤 Normal User
-- Register and log in securely
-- Search and browse stores by name or address
-- Submit a 1–5 star rating for any store
-- Update a previously submitted rating
-- View each store's average rating and personal rating
+
+* Secure registration and login
+* Browse and search stores by name or address
+* Submit ratings from 1–5 stars
+* Update previously submitted ratings
+* View average ratings and personal ratings
 
 ### 🏪 Store Owner
-- View own store's average rating and total rating count
-- See how many unique users have rated the store
-- Browse the full list of raters with their individual scores
+
+* View store's average rating
+* View total ratings and unique users
+* Browse all users who rated the store and their scores
 
 ### 🛡️ Admin
-- Overview dashboard with total users, stores, and ratings
-- Ratings-over-time chart and user role distribution graph
-- Recent activity feed
-- Create users of any role; register and manage stores
-- Search, sort, and paginate both user and store lists
-- Export user and store data to CSV
 
-### 🔐 Authentication & Security
-- JWT access token (short-lived, 15 min) sent as Authorization header
-- HttpOnly refresh token cookie (7-day, stored hashed in DB)
-- Token rotation and revocation on password change
-- Role-based route protection (Admin / Store Owner / User)
-- Rate limiting on all API endpoints; stricter limits on auth routes
-- Helmet security headers, CORS whitelisting, input validation via Joi
+* Dashboard with users, stores, and ratings statistics
+* Ratings-over-time and role distribution charts
+* Recent activity feed
+* Create and manage users and stores
+* Search, sort, and paginate records
+* Export users and stores to CSV
+
+### 🔐 Security
+
+* JWT access token authentication
+* HttpOnly refresh token cookies
+* Token rotation and revocation
+* Role-based route protection
+* Rate limiting and Helmet security headers
+* Input validation using Joi
+* CORS protection
 
 ---
 
-## Architecture Overview
+## Architecture
 
-```
-┌──────────────────────────────────────────────┐
-│           React Frontend (Vite)              │
-│  TanStack Query · React Hook Form · Recharts │
-└─────────────────────┬────────────────────────┘
-                      │ HTTPS  /api/*
-┌─────────────────────▼────────────────────────┐
-│         Node.js / Express Backend            │
-│  Routes → Controllers → Services → Repos     │
-│  Helmet · CORS · Rate Limiting · Swagger     │
-└─────────────────────┬────────────────────────┘
-                      │ Sequelize ORM
-          ┌───────────▼───────────┐
-          │     SQLite Database   │
-          │  (Sequelize auto-sync)│
-          └───────────────────────┘
+```text
+React (Vite)
+      │
+      │ HTTPS /api/*
+      ▼
+Node.js + Express
+Routes → Controllers → Services → Repositories
+      │
+      ▼
+Sequelize ORM
+      │
+      ▼
+SQLite Database
 ```
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19, Vite 5, Tailwind CSS 3, TanStack Query, React Hook Form, Zod, Recharts, Framer Motion |
-| **Backend** | Node.js 20, Express 4, Sequelize 6, Joi, Winston, Morgan, Swagger UI |
-| **Database** | SQLite (via `sqlite3`); MySQL-compatible via `DB_DIALECT` switch |
-| **Authentication** | JWT (access + refresh), bcrypt, httpOnly cookies |
-| **Containerisation** | Docker (backend), Nginx (frontend static serving), Docker Compose |
-| **Deployment** | Render (Docker Web Service + Static Site) |
+| Layer            | Technologies                                                                                  |
+| ---------------- | --------------------------------------------------------------------------------------------- |
+| Frontend         | React 19, Vite 5, Tailwind CSS, TanStack Query, React Hook Form, Zod, Recharts, Framer Motion |
+| Backend          | Node.js 20, Express 4, Sequelize 6, Joi, Winston, Morgan, Swagger UI                          |
+| Database         | SQLite (`sqlite3`)                                                                            |
+| Authentication   | JWT, bcrypt, HttpOnly cookies                                                                 |
+| Containerization | Docker, Docker Compose                                                                        |
+| Deployment       | Render                                                                                        |
 
 ---
 
-## Getting Started
+## Local Setup
 
-### Prerequisites
-- Node.js 18+
-- npm 9+
-- Docker (optional)
+### Backend
 
-### Local Setup
-
-**Backend**
 ```bash
 cd backend
 cp .env.example .env
 npm install
-npm run seed    # creates DB + admin + demo data
-npm run dev     # → http://localhost:5000
+npm run seed
+npm run dev
 ```
 
-**Frontend**
+Runs at:
+
+```text
+http://localhost:5000
+```
+
+### Frontend
+
 ```bash
 cd frontend
 npm install
-npm run dev     # → http://localhost:5173
+npm run dev
 ```
 
-> The Vite dev server proxies `/api/*` to `localhost:5000` automatically — no extra configuration needed.
+Runs at:
 
-### Docker Setup
+```text
+http://localhost:5173
+```
+
+---
+
+## Docker
 
 ```bash
 docker compose up --build
 ```
 
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:8080 |
-| Backend API | http://localhost:5000 |
-| API Docs | http://localhost:5000/api/docs |
+| Service     | URL                            |
+| ----------- | ------------------------------ |
+| Frontend    | http://localhost:8080          |
+| Backend API | http://localhost:5000          |
+| API Docs    | http://localhost:5000/api/docs |
 
 ---
 
 ## Demo Credentials
 
-| Role | Email | Password |
-|---|---|---|
-| **Admin** | `admin@storerating.com` | `Admin@1234` |
-| **Store Owner** | `owner1@storerating.com` | `Owner@123` |
-| **Normal User** | `aarav@example.com` | `User@1234` |
+| Role        | Email                    | Password     |
+| ----------- | ------------------------ | ------------ |
+| Admin       | `admin@storerating.com`  | `Admin@1234` |
+| Store Owner | `owner1@storerating.com` | `Owner@123`  |
+| Normal User | `aarav@example.com`      | `User@1234`  |
 
 ---
 
 ## Project Structure
 
-```
+```text
 roxiler-store-rating-platform/
-├── backend/                  # Node.js API (Express + Sequelize + SQLite)
-│   ├── Dockerfile
-│   ├── .env.example
-│   └── src/
-│       ├── config/           # env, db, logger, swagger
-│       ├── routes/           # one router per resource
-│       ├── controllers/      # request → service → response
-│       ├── services/         # business logic + optional Redis caching
-│       ├── repositories/     # all Sequelize queries
-│       ├── models/           # User, Store, Rating, ActivityLog, RefreshToken
-│       ├── middlewares/      # auth, RBAC, rate-limit, error handler
-│       └── seed/             # idempotent seed script
-├── frontend/                 # React app (Vite + Tailwind)
-│   ├── Dockerfile
-│   └── src/
-│       ├── pages/            # Admin, User, Owner, Login, Signup
-│       ├── components/       # tables, modals, charts, forms
-│       ├── services/         # Axios client + API layer
-│       └── contexts/         # auth state
-├── docker-compose.yml        # local full-stack setup
-└── render.yaml               # Render Blueprint (one-click deploy)
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── routes/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── models/
+│   │   ├── middlewares/
+│   │   └── seed/
+│   └── Dockerfile
+│
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   ├── components/
+│   │   ├── services/
+│   │   └── contexts/
+│   └── Dockerfile
+│
+├── docker-compose.yml
+└── render.yaml
 ```
 
 ---
 
 ## Screenshots
 
-> *Screenshots will be added after the live deployment is verified.*
+### Admin Dashboard
 
-| Screen | Description |
-|---|---|
-| **Login** | Role-based redirect after JWT auth |
-| **Admin Dashboard** | KPI counters, ratings chart, activity feed |
-| **Store List** | Searchable, sortable, paginated, CSV export |
-| **Rate a Store** | Star rating with live average update |
-| **Owner Dashboard** | Rating analytics for the owner's store |
+<p align="center">
+  <img width="900" src="https://github.com/user-attachments/assets/fc75ce89-c836-4622-b7ab-390d939a9e81" />
+  <img width="900" src="https://github.com/user-attachments/assets/d888f2db-82b6-4853-a36b-446ecb0da085" />
+  <img width="900" src="https://github.com/user-attachments/assets/efafafd3-7a01-4404-aa22-c2c6fb65c55f" />
+</p>
+
+### Store Owner Dashboard
+
+<p align="center">
+  <img width="900" src="https://github.com/user-attachments/assets/88bba7b5-ca6d-4c23-9a64-d47a67d192f3" />
+</p>
+
+### User Dashboard
+
+<p align="center">
+  <img width="900" src="https://github.com/user-attachments/assets/f7e112bc-7e45-4bac-8390-c08f02f22d0f" />
+</p>
+
+---
+
+## Assessment Highlights
+
+* Three role-based dashboards (Admin, Store Owner, User)
+* Layered MVC backend architecture
+* JWT authentication with refresh token rotation
+* Role-based authorization and protected routes
+* Search, sorting, pagination, and CSV export
+* Swagger API documentation
+* Dockerized deployment
+* Deployed on Render
+

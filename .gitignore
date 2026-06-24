@@ -1,14 +1,32 @@
+## Runtime
 node_modules/
+npm-debug.log*
+*.log
+
+## Environment / Secrets — NEVER commit these
 .env
-.env.*
+.env.local
+.env.*.local
+# Keep .env.example (it's the template, not a secret)
 !.env.example
+
+## Build output
 build/
 dist/
 coverage/
-*.log
-.DS_Store
-*.sqlite
-data.sqlite
 
-# Claude Code local files
+## SQLite database files — NEVER commit (contains user data + secrets)
+*.sqlite
+*.sqlite3
+*.db
+data.sqlite
+backend/data.sqlite
+
+## OS / Editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+## Claude Code
 .claude/
